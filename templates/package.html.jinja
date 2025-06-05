@@ -1,0 +1,29 @@
+{% extends "page.html.jinja" %}
+{% import 'badges.html.jinja' as badges %}
+{% block title %}Package {{ package.name }}{% endblock %}
+{% block page_content %}
+  <h1>Package: {{ package.name }}</h1>
+  <h2>Rule</h2>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Test Case: {{ case.id }}, Rule: {{ rule.id }}</h5>
+      <p>
+        Level: {{ rule.level.name }}</br>
+        Message: {{ rule.message }}
+      </p>
+    </div>
+  </div>
+  <h2>Package</h2>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Name: {{ package.name }}</h5>
+      <p>Expected: {{ badges.valid_badge(package.is_valid) }}</p>
+      <p>Path: {{ corpus.path }}/{{ package.path }}</p>
+    </div>
+  </div>
+{% endblock page_content %}
+{% block page_javascript %}
+  <script src="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.js"></script>
+{% endblock page_javascript %}
+
+{% macro true_false_class(bool_val) %}{% if bool_val %}success{% else %}danger{% endif %}{% endmacro %}

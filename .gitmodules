@@ -1,0 +1,3 @@
+[submodule "eark-ip-test-corpus"]
+	path = eark-ip-test-corpus
+	url = https://github.com/DILCISBoard/eark-ip-test-corpus.git

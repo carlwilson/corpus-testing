@@ -1,0 +1,33 @@
+{% extends "page.html.jinja" %}
+{% block title %}Home{% endblock %}
+{% block page_content %}
+    <section class="jumbotron text-center">
+      <h1>E-ARK Specification Test Coverage</h1>
+      <p class="lead text-muted">Test coverage for the E-ARK Information Package Specifications.</p>
+    </section>
+    <div class="album py-5 bg-light">
+      <h2>Information Package Specifications</h2>
+      <div class="row">
+      {% for corpus in corpora %}
+        <div class="col-md-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ corpus.specification.title }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">{{ corpus.specification.version }} {{ corpus.specification.date[:-9] }}</h6>
+              <p class="card-text">
+                <ul>
+                  <li>{{ corpus.specification.requirement_count|int + corpus.specification.structural_requirements|length }} requirements.</li>
+                  <li>{{ corpus.test_cases|length }} test cases.</li>
+                  <li>{{ corpus.rules|length }} validation rules.</li>
+                  <li>{{ corpus.implemented_packages|length }}/{{ corpus.packages|length }} packages.</li>
+                </ul>
+              </p>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">WIP</small>
+              </div>
+            </div>
+          </div>
+      </div>
+      {% endfor %}
+    </div>
+{% endblock page_content %}

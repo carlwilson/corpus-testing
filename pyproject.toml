@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-git-versioning<2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eark-corpora"
+dynamic = ["version"]
+authors = [
+  { name="E-ARK Foundation", email="admin@e-ark-foundation.eu" },
+]
+maintainers = [
+  { name="E-ARK Foundation", email="admin@e-ark-foundation.eu" },
+  { name="Carl Wilson", email="carl@openpreservation.org" },
+]
+license = {file = "LICENSE"}
+description = "E-ARK Specification and corpus testing and reporting."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "eark-validator",
+    "pydantic_settings",
+    "Jinja2",
+    "xsdata",
+]
+
+[project.optional-dependencies]
+testing = [
+    "pre-commit",
+    "pytest",
+    "pylint",
+    "pytest-cov",
+    'pytest-runner',
+]
+
+[project.urls]
+"Homepage" = "https://www.e-ark-foundation.eu/e-ark-software-py-e-ark-ip-validator/"
+"Issues" = "https://github.com/DILCISBoard/corpus-testing/issues"
+"Repository" = "https://github.com/DILCISBoard/corpus-testing.git"
+
+[project.scripts]
+eark-corpora = "eark_corpora.cli.app:main"
+eark-runner = "eark_corpora.tester.app:main"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+
+[tool.setuptools]
+packages = ["eark_corpora", "eark_corpora.cli", "eark_corpora.model", "eark_corpora.tester" ]
+
+[tool.setuptools-git-versioning]
+enabled = true
+dev_template = "{tag}.dev{env:GITHUB_RUN_NUMBER:{ccount}}"
+dirty_template = "{tag}.dev{env:GITHUB_RUN_NUMBER:{ccount}}+git.{sha}.dirty"

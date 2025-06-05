@@ -1,0 +1,3 @@
+{% macro valid_badge(valid) %}
+<span class="badge badge-{% if valid %}success{% else %}danger{% endif %}">{% if valid %}Valid{% else %}invalid{% endif %}</span>
+{% endmacro %}

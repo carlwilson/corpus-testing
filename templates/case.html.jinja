@@ -1,0 +1,53 @@
+{% extends "page.html.jinja" %}
+{% import 'badges.html.jinja' as badges %}
+{% block title %}Test Case {{ test_case.id }}{% endblock %}
+{% block page_content %}
+  <h1>Test Case {{ test_case.id }}</h1>
+   <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">{{ test_case.id }}</h5>
+      <p>Testable: {{ test_case.testable.name }}</br>
+      Schema Valid: {{ badges.valid_badge(test_case.is_xml_valid) }}</br>
+      {% if not test_case.is_xml_valid %}XML Validation Error: {{ test_case.error }}</br>{% endif %}
+      Description: {{ test_case.description }}</br>
+    </div>
+  </div>
+  <h2>Rules</h2>
+  <ul class="list-group list-group-flush">
+  {% for rule in test_case.rules %}
+    <li class="list-group-item">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Rule ID: {{ rule.id }}</h5>
+          <p class="card-text">Descripton: {{ rule.description }}</p>
+          <p class="card-text">{{ rule.level.name }}: {{ rule.message }}</p>
+          <p class="card-text">
+            <h5>Packages:</h5>
+            <table class="table table-striped" data-toggle="table">
+              <thead class="thead-dark">
+                <tr>
+                  <th>Name</th>
+                  <th>Expected Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for package in rule.packages %}
+                <tr>
+                  <td><a href="./{{ package.name }}/">{{ package.name }}</a></td>
+                  <td>{{ badges.valid_badge(package.is_valid) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </p>
+        </div>
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+{% endblock page_content %}
+{% block page_javascript %}
+  <script src="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.js"></script>
+{% endblock page_javascript %}
+
+{% macro true_false_class(bool_val) %}{% if bool_val %}success{% else %}danger{% endif %}{% endmacro %}

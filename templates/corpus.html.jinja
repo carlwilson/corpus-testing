@@ -1,0 +1,50 @@
+{% extends "page.html.jinja" %}
+{% block title %}Corpus {{ corpus.specification.id }}{% endblock %}
+{% block page_content %}
+  <h1>{{ corpus.specification.title }} {{ corpus.specification.version }} {{ corpus.specification.date[:-9] }}</h1>
+  <h2>{{ corpus.specification.id }} Corpus Summary</h2>
+  <table class="table table-striped" data-toggle="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>{{ corpus.specification.id }} Requirements</th>
+        <th>Test Cases</th>
+        <th>Rules</th>
+        <th>Packages</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ corpus.specification.requirement_count + corpus.specification.structural_requirements|length }}</td>
+        <td>{{ corpus.test_cases | length }}</td>
+        <td>{{ corpus.rules | length }}</td>
+        <td>{{ corpus.packages | length }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <h2>{{ corpus.specification.id }} Requirements</h2>
+  <table class="table table-striped" data-toggle="table" data-search="true">
+    <thead class="thead-dark">
+      <tr>
+        <th data-field="id" data-sortable="true">Cases</th>
+        <th data-field="testable" data-sortable="true">Testable</th>
+        <th data-field="rules" data-sortable="true">Rules</th>
+        <th data-field="packages" data-sortable="true">Packages</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for corpus_case in corpus.test_cases %}
+      <tr>
+        <td class="table-{{ true_false_class(corpus_case.is_xml_valid) }}"><a href="./{{ corpus_case.id }}/">{{ corpus_case.id }}</a></td>
+        <td>{{ corpus_case.testable.value }}</td>
+        <td>{{ corpus_case.rules | length }}</td>
+        <td>{{ corpus_case.implemented_packages | length }}/{{ corpus_case.packages | length }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock page_content %}
+{% block page_javascript %}
+  <script src="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.js"></script>
+{% endblock page_javascript %}
+
+{% macro true_false_class(bool_val) %}{% if bool_val %}success{% else %}danger{% endif %}{% endmacro %}

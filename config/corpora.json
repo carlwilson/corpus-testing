@@ -1,0 +1,22 @@
+{
+    "corpora" : [
+        {
+            "name": "Common Specification for Information Packages",
+            "id": "CSIP",
+            "URL": "https://earkcsip.dilcis.eu/profile/E-ARK-CSIP-v2-1-0.xml",
+            "path": "eark-ip-test-corpus/corpus/CSIP"
+        },
+        {
+            "name": "Specification for Submission Information Packages",
+            "id": "SIP",
+            "URL": "https://earksip.dilcis.eu/profile/E-ARK-SIP-v2-1-0.xml",
+            "path": "eark-ip-test-corpus/corpus/SIP"
+        },
+        {
+            "name": "Specification for Dissemination Information Packages",
+            "id": "DIP",
+            "URL": "https://earkdip.dilcis.eu/profile/E-ARK-DIP-v2-1-0.xml",
+            "path": "eark-ip-test-corpus/corpus/DIP"
+        }
+    ]
+}

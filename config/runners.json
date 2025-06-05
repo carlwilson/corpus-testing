@@ -1,0 +1,44 @@
+{
+    "runners": [
+        {
+            "name": "E-ARK Python Validator",
+            "URL": "https://github.com/E-ARK-Software/eark-validator/",
+            "id": "eark-validator",
+            "commands": {
+                "version": [
+                    "eark-validator",
+                    "--version"
+                ],
+                "pre": [
+                    "eark-validator"
+                ],
+                "post": [
+                ]
+            }
+        },
+        {
+            "name": "Commons IP Validator",
+            "URL": "https://github.com/keeps/commons-ip/",
+            "id": "commons-ip",
+            "commands": {
+                "version": [
+                    "java",
+                    "-jar",
+                    "commons-ip/commons-ip2-cli-2.8.1.jar",
+                    "-V"
+                ],
+                "pre": [
+                    "java",
+                    "-jar",
+                    "commons-ip/commons-ip2-cli-2.8.1.jar",
+                    "validate",
+                    "-i"
+                ],
+                "post": [
+                    "-r",
+                    "eark-validator"
+                ]
+            }
+        }
+    ]
+}
