@@ -8,7 +8,7 @@
       <h5 class="card-title">{{ test_case.id }}</h5>
       <p>Testable: {{ test_case.testable.name }}</br>
       Schema Valid: {{ badges.valid_badge(test_case.is_xml_valid) }}</br>
-      {% if not test_case.is_xml_valid %}XML Validation Error: {{ test_case.error }}</br>{% endif %}
+      {% if not test_case.is_xml_valid %}XML Validation Error: {{ test_case.xml_validation_error }}</br>{% endif %}
       Description: {{ test_case.description }}</br>
     </div>
   </div>
@@ -23,22 +23,36 @@
           <p class="card-text">{{ rule.level.name }}: {{ rule.message }}</p>
           <p class="card-text">
             <h5>Packages:</h5>
-            <table class="table table-striped" data-toggle="table">
-              <thead class="thead-dark">
-                <tr>
-                  <th>Name</th>
-                  <th>Expected Result</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for package in rule.packages %}
-                <tr>
-                  <td><a href="./{{ package.name }}/">{{ package.name }}</a></td>
-                  <td>{{ badges.valid_badge(package.is_valid) }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+            {% for package in rule.packages %}
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title"><a href="./{{ package.name }}/">{{ package.name }}</a></h5>
+                <p class="card-text">Expected result: {{ badges.valid_badge(package.is_valid) }}</p>
+                <table class="table table-striped">
+                  <thead class="thead-dark">
+                    <th>Validator</th>
+                    <th>Version</th>
+                    <th>Ret Code</th>
+                    <th>Valid</th>
+                    <th>Duration</th>
+                    <th>Contains Code</th>
+                  </thead>
+                  <tbody>
+                  {% for result in package.test_results %}
+                    <tr>
+                      <td>{{ result.details.name }}</td>
+                      <td>v{{ result.details.version }}</td>
+                      <td>{{ result.ret_code }}</td>
+                      <td>{{ badges.valid_badge(result.is_valid) }}</td>
+                      <td>{{ "%.2fs"|format(result.duration) }}</td>
+                      <td>{{ result.contains_code }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% endfor %}
           </p>
         </div>
       </div>

@@ -22,30 +22,24 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-import json
 import time
-from typing import List, Tuple
+from typing import List
 import subprocess
 
-class ProcessResult:
-    """Package result class."""
-    def __init__(self, retcode: int, stdout: str, stderr: str, duration:float, exception: Exception = None):
-        self.retcode: int = retcode
-        self.stdout: str = stdout
-        self.stderr: str = stderr
-        self.duration: float = duration
-        self.exception: Exception = exception
+from eark_corpora.model.runners import ProcessResult, RunnerDetails
 
-    def __repr__(self):
-        return f"PackageResult(package_name={self.package_name}, test_case_id={self.test_case_id}, retcode={self.retcode})"
-
-    def toJson(self):
-        return json.dumps(self, default=lambda o: o.__dict__).replace('\\n', '').replace('\\"', '"').replace('"{', '{').replace('}"', '}')
-
-def run_process(command: List[str]) -> ProcessResult:
+def run_process(runner_details: RunnerDetails, command: List[str]) -> ProcessResult:
     start = time.time()
     try:
         proc_results = subprocess.run(command, capture_output=True, timeout=60, text=True)
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-        return ProcessResult(e.returncode, e.stdout.decode('utf-8').strip(), e.stderr.decode('utf-8').strip(), time.time() - start, exception=e)
-    return ProcessResult(proc_results.returncode, proc_results.stdout, proc_results.stderr, time.time() - start)
+        return ProcessResult(e.returncode,
+                             e.stdout.strip(),
+                             e.stderr.strip().replace('"', "'"),
+                             time.time() - start,
+                             exception=e)
+    return ProcessResult(runner_details,
+                         proc_results.returncode,
+                         proc_results.stdout.strip(),
+                         proc_results.stderr.strip().replace('"', "'"),
+                         time.time() - start)

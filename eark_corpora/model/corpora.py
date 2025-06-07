@@ -24,7 +24,7 @@
 #
 from enum import Enum, unique
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 from lxml import etree
 from xsdata.formats.dataclass.parsers import XmlParser
@@ -34,6 +34,7 @@ from eark_validator.model.specifications import Specification
 from eark_validator.specifications.specification import SpecificationType, SpecificationVersion
 
 from eark_corpora.model.casexml import TestCase, Rule, Package
+from eark_corpora.model.runners import ProcessResult, RunnerDetails
 
 
 @unique
@@ -57,7 +58,7 @@ class Testable(str, Enum):
 class Level(str, Enum):
     ERROR = "ERROR"
     INFO = "INFO"
-    WARNING = "WARNING"
+    WARNING = "WARN"
 
     @classmethod
     def from_str(cls, value: str) -> 'Level':
@@ -72,6 +73,78 @@ class TestCaseId(BaseModel):
     version: SpecificationVersion
     type: SpecificationType
 
+class CorpusTestResult(BaseModel):
+    """CorpusTestResult class for testing
+    purposes."""
+    details: RunnerDetails
+    requirement_id: str
+    ret_code: int = -1
+    duration: float = 0.0
+    struct_status: str = 'Unknown'
+    schema_status: str = 'Unknown'
+    schematron_status: str = 'Unknown'
+    error_ids: Dict[str, Level] = {}
+    error_msg: str = ''
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if the test result is valid."""
+        return self.ret_code == 0 and self.struct_status == 'WellFormed' and self.schema_status == 'Valid' and self.schematron_status == 'Valid'
+    
+    @property
+    def contains_code(self) -> bool:
+        """Check if the test result contains code."""
+        return self.requirement_id in self.error_ids.keys()
+    
+    @classmethod
+    def from_process_result(cls, process_result: ProcessResult, test_case_id: str) -> 'CorpusTestResult':
+        """Create a CorpusTestResult from a ProcessResult."""
+        if process_result.retcode != 0 or not isinstance(process_result.stdout, dict):
+            error_msg = str(process_result.stderr) if process_result.stderr else process_result.stdout
+            return CorpusTestResult(
+                details=process_result.runner_details,
+                requirement_id=test_case_id,
+                ret_code=process_result.retcode,
+                error_msg=error_msg,
+                duration=process_result.duration, 
+            )
+        error_ids: Dict[str, Level] = {}
+        struct_status, ids = cls._get_results(process_result.stdout.get('structuralResults', {}))
+        error_ids.update(ids)
+        schema_status = 'Unknown'
+        schematron_status = 'Unknown'
+        metadata = process_result.stdout.get('metadata', {})
+        if metadata:
+            schema_name = 'schemaResults' if process_result.runner_details.id == 'commons-ip' else 'schema_results'
+            schema_status, ids = cls._get_results(metadata.get(schema_name, {}), process_result.runner_details.id == 'commons-ip')
+            error_ids.update(ids)
+            schematron_name = 'schematronResults' if process_result.runner_details.id == 'commons-ip' else 'schematron_results'
+            schematron_status, ids = cls._get_results(metadata.get(schematron_name, {}), process_result.runner_details.id == 'commons-ip')
+            error_ids.update(ids)
+        return CorpusTestResult(
+            details=process_result.runner_details,
+            requirement_id=test_case_id,
+            ret_code=process_result.retcode,
+            struct_status=struct_status,
+            schema_status=schema_status,
+            schematron_status=schematron_status,
+            duration=process_result.duration,
+            error_ids=error_ids,
+        )
+    
+    @classmethod
+    def _get_results(cls, result_dict: Dict, is_commons_ip: bool = False) -> Tuple[str, Dict[str, Level]]:
+        error_ids: Dict[str, Level] = {}
+        status: str = 'Unknown'
+        status_name: str = 'status' if is_commons_ip else 'level'
+        rule_name: str = 'ruleId' if is_commons_ip else 'rule_id'
+        if result_dict:
+            status = result_dict.get(status_name, 'Unknown')
+            for message in result_dict.get('messages', []):
+                error_ids.update({ message.get(rule_name, 'Unknown') : Level.from_str(message.get('level', 'ERROR')) })
+        return status, error_ids
+
+
 class CorpusPackage(BaseModel):
     """Package class for testing purposes."""
     name: str
@@ -81,6 +154,7 @@ class CorpusPackage(BaseModel):
     is_valid: bool
     has_directory: bool
     has_mets: bool
+    test_results: List[CorpusTestResult] = []
 
 class CorpusRule(BaseModel):
     """Rule class for testing purposes."""
@@ -102,8 +176,8 @@ class CorpusRule(BaseModel):
                 name=package.name,
                 description=package.description.value,
                 path=Path(package.path.value),
-                is_implemented=package.is_implemented == "TRUE",
-                is_valid=package.is_valid == "TRUE",
+                is_implemented=package.is_implemented.value == "TRUE",
+                is_valid=package.is_valid.value == "TRUE",
                 has_directory = cls._has_directory(package, root),
                 has_mets = cls._has_mets(package, root) 
             ) for package in rule.corpus_packages.package],

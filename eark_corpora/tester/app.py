@@ -37,7 +37,8 @@ from eark_validator.specifications.specification import SpecificationType
 
 from eark_corpora.loader import get_corpora, corpus_root
 from eark_corpora.model.corpora import Corpus
-from eark_corpora.tester.processrunner import run_process, ProcessResult
+from eark_corpora.model.runners import ProcessResult
+from eark_corpora.tester.processrunner import run_process
 from eark_corpora.tester.utils import get_runners
 
 __version__ = importlib.metadata.version('eark_corpora')
@@ -63,6 +64,11 @@ def parse_command_line():
     PARSER.add_argument('--version',
                         action='version',
                         version=__version__)
+    PARSER.add_argument('--clear',
+                        action='store_true',
+                        dest='clear',
+                        default=False,
+                        help='Clear the results directory before running tests.')
     # Parse arguments
     args = PARSER.parse_args()
     return args
@@ -84,7 +90,7 @@ def test_runners():
         for test_case in corpus.test_cases:
             for rule in test_case.rules:
                 for package in rule.packages:
-                    if not package.has_directory:
+                    if not package.has_directory or not package.path or package.path.name == '':
                         continue
                     relative_path = Path(corpus.specification.id) / str(test_case.id) / package.path
                     package_path = corpus_root / relative_path
@@ -96,9 +102,9 @@ def test_runners():
                         with open(output_path / (result_id + '.json'), 'w') as f:
                             f.write(result.toJson())
                         if result.retcode != 0:
-                            print(f"Error running package {package.name} for test case {test_case.id}: {result.stdout}\n{result.stderr}")
+                            print(f"Error running { result.runner_details.name } for package {package.name} for test case {test_case.id}")
                         else:
-                            print(f"Successfully ran package {package.name} for test case {test_case.id}: {result.stdout}")
+                            print(f"Successfully ran { result.runner_details.name } for package {package.name} for test case {test_case.id}")
 
 def validate_package(package_path: Path) -> Dict[str, ProcessResult]:
     results: Dict[str, ProcessResult] = {}
@@ -106,26 +112,27 @@ def validate_package(package_path: Path) -> Dict[str, ProcessResult]:
         command: List[str] = runner.commands.get('pre', []).copy()
         command.append(package_path)
         command+= runner.commands.get('post', [])
-        result: ProcessResult = run_process(command)
+        result: ProcessResult = run_process(runner.details, command)
         if (runner_id == 'commons-ip') and (result.retcode == 0):
-            file_name = Path(result.stdout[result.stdout.find("'")+1:-2])
+            file_name = Path(result.stdout[result.stdout.find("'")+1:-1])
             with open(file_name, 'r', encoding='utf-8') as _f:
                 contents: str = _f.read()
                 result.stdout = contents
             file_name.unlink()
         elif (result.retcode == 0):
-            output = result.stdout[result.stdout.find("{"):-1]
+            output = result.stdout[result.stdout.find("{"):]
             result.stdout = output
 
-        results[runner_id + runner.version] = result
+        results[runner_id + runner.details.version] = result
     return results
 
 def main():
     """Main command line application."""
     _exit: int = 0
     # Get input from command line
-    _ = parse_command_line()
-    _setup()
+    args = parse_command_line()
+    if args.clear:
+        _setup()
     test_runners()
     sys.exit(_exit)
 

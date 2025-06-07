@@ -22,22 +22,53 @@
     </tbody>
   </table>
   <h2>{{ corpus.specification.id }} Requirements</h2>
+  <h3>{{ corpus.specification.id }} Key</h3>
+  <table class="table table-striped" data-toggle="table">
+    <thead class="thead-dark">
+      <tr>
+        <th data-field="id">Test Case ID</th>
+        <th data-field="testable">Testable</th>
+        <th data-field="rules">Rules</th>
+        <th data-field="packages">Implemented Packages/Defined Packages</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="table-danger">Test Case XML failed validation</td>
+        <td class="table-danger">UNKNOWN</td>
+        <td>No Key</td>
+        <td class="table-danger">No packages implemented.</td>
+      </tr>
+      <tr>
+        <td>No Key</td>
+        <td class="table-warning">FALSE/PARTIAL</td>
+        <td>No Key</td>
+        <td class="table-warning">Some packages implemented.</td>
+      </tr>
+      <tr>
+        <td class="table-success">Test Case XML Valid</td>
+        <td class="table-success">TRUE</td>
+        <td>No Key</td>
+        <td class="table-success">All packages implemented.</td>
+      </tr>
+    </tbody>
+  </table>
   <table class="table table-striped" data-toggle="table" data-search="true">
     <thead class="thead-dark">
       <tr>
-        <th data-field="id" data-sortable="true">Cases</th>
+        <th data-field="id" data-sortable="true">Test Case ID</th>
         <th data-field="testable" data-sortable="true">Testable</th>
         <th data-field="rules" data-sortable="true">Rules</th>
-        <th data-field="packages" data-sortable="true">Packages</th>
+        <th data-field="packages" data-sortable="true">Implemented Packages/Defined Packages</th>
       </tr>
     </thead>
     <tbody>
       {% for corpus_case in corpus.test_cases %}
       <tr>
         <td class="table-{{ true_false_class(corpus_case.is_xml_valid) }}"><a href="./{{ corpus_case.id }}/">{{ corpus_case.id }}</a></td>
-        <td>{{ corpus_case.testable.value }}</td>
+        <td class="table-{{ testable_class(corpus_case.testable.value) }}">{{ corpus_case.testable.value }}</td>
         <td>{{ corpus_case.rules | length }}</td>
-        <td>{{ corpus_case.implemented_packages | length }}/{{ corpus_case.packages | length }}</td>
+        <td class="table-{{ packages_class(corpus_case.implemented_packages | length,  corpus_case.packages | length ) }}">{{ corpus_case.implemented_packages | length }}/{{ corpus_case.packages | length }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -47,4 +78,8 @@
   <script src="https://unpkg.com/bootstrap-table@1.18.1/dist/bootstrap-table.min.js"></script>
 {% endblock page_javascript %}
 
-{% macro true_false_class(bool_val) %}{% if bool_val %}success{% else %}danger{% endif %}{% endmacro %}
+{% macro true_false_class(bool_val=false) %}{% if bool_val %}success{% else %}danger{% endif %}{% endmacro %}
+
+{% macro packages_class(implemented_packages=0, defined_packages=0) %}{% if implemented_packages ==  defined_packages %}success{% elif implemented_packages == 0 %}danger{% else %}warning{% endif %}{% endmacro %}
+
+{% macro testable_class(testable_val='FALSE') %}{% if testable_val == 'TRUE' %}success{% elif testable_val == 'FALSE' or testable_val == 'PARTIAL' %}warning{% else %}danger{% endif %}{% endmacro %}

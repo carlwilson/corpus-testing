@@ -26,14 +26,11 @@
 E-ARK : Corpus Reporting
 """
 from functools import lru_cache
-import json
 from pathlib import Path
 
 from eark_validator.specifications.specification import EarkSpecification, SpecificationType, SpecificationVersion
 from eark_corpora.model.corpora import Corpus
-from eark_corpora.model.runners import Runner
 from eark_corpora.cli.config import AppConfig
-from eark_corpora.tester.processrunner import run_process
 
 
 corpus_root = Path('./eark-ip-test-corpus/corpus')

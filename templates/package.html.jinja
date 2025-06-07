@@ -19,6 +19,27 @@
       <h5 class="card-title">Name: {{ package.name }}</h5>
       <p>Expected: {{ badges.valid_badge(package.is_valid) }}</p>
       <p>Path: {{ corpus.path }}/{{ package.path }}</p>
+      {% if results | length > 0 %}
+      <p>Test Results</p>
+      <table class="table table-striped" data-toggle="table">
+        <thead class="thead-dark">
+          <tr>
+            <th>Validator</th>
+            <th>Ret Code</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr>
+            <td>{{ result.details.name }}</td>
+            <td>{{ result.retcode }}</td>
+            <td>{{ "%.2fs"|format(result.duration) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
     </div>
   </div>
 {% endblock page_content %}

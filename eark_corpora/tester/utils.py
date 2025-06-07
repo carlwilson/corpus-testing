@@ -26,7 +26,7 @@
 from functools import lru_cache
 import json
 from eark_corpora.loader import get_config
-from eark_corpora.model.runners import Runner
+from eark_corpora.model.runners import Runner, RunnerDetails
 from eark_corpora.tester.processrunner import ProcessResult, run_process
 
 @lru_cache(maxsize=1)
@@ -40,17 +40,18 @@ def get_runners() -> dict[str, Runner]:
             if not isinstance(runner_dict, dict) or 'commands' not in runner_dict:
                 raise ValueError("Invalid runner configuration format.")
             version = get_version(runner_dict)
-            runner_dict.update({'version': version})
+            runner_dict['details'].update({'version': version})
             runner = Runner(**runner_dict)
-            runners[runner.id] = runner
+            runners[runner.details.id] = runner
     return runners
 
 def get_version(runner_dict: dict) -> str:
     """Get the version of a specific runner."""
+    runner_details: RunnerDetails = RunnerDetails(**runner_dict.get('details', {}))
     commands = runner_dict.get('commands', {})
     if not isinstance(commands, dict) or 'version' not in commands:
         raise ValueError("Invalid commands format in runner configuration.")
-    result: ProcessResult = run_process(commands['version'])
+    result: ProcessResult = run_process(runner_details, commands['version'])
     if result.retcode != 0:
         raise RuntimeError(f"Error running version command: {result.stderr.decode('utf-8')}")
     return result.stdout.strip().split(' ')[-1]  # Assuming version is the first part of the output

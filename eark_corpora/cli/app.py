@@ -26,18 +26,23 @@
 E-ARK : Corpora Reporting
         Command line corpora reporting tool
 """
+import datetime
+import json
 import shutil
 import sys
 import importlib.metadata
 import argparse
 from pathlib import Path
+from typing import Dict, List, Set
 
 from jinja2 import Environment, FileSystemLoader, Template
 
 from eark_validator.specifications.specification import SpecificationType
 
-from eark_corpora.model.corpora import Corpus, CorpusTestCase
+from eark_corpora.model.corpora import Corpus, CorpusPackage, CorpusTestCase, CorpusTestResult, Level
 from eark_corpora.loader import get_corpora, corpus_root
+from eark_corpora.tester.app import results_root
+from eark_corpora.tester.processrunner import ProcessResult
 
 __version__ = importlib.metadata.version('eark_corpora')
 environment: Environment = Environment(loader=FileSystemLoader('templates/'))
@@ -70,7 +75,7 @@ def parse_command_line():
 def _iterate_corpora(corpora: dict[SpecificationType, Corpus] = None):
     """Iterate over all specifications."""
     # Render the home overview report
-    _render_template(reports_root, 'home.html.jinja', { 'corpora': corpora.values() })
+    _render_template(reports_root, 'home.html.jinja', { 'corpora': corpora.values(), 'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') })
     # iterate over each corpus and output the reports
     for corpus in corpora.values():
         _output_corpus(corpus)
@@ -84,6 +89,11 @@ def _output_corpus(corpus: Corpus):
 def _output_cases(corpus: Corpus):
     # Iterate the corpus test cases and output the test case reports
     for test_case in corpus.test_cases:
+        for rule in test_case.rules:
+            for package in rule.packages:
+                results: List[CorpusTestResult] = _get_package_results(package, test_case.id, corpus.specification.id)
+                package.test_results = results
+        # Render the rule report
         _render_template(reports_root / corpus.specification.id / test_case.id,
             'case.html.jinja',
             {
@@ -108,9 +118,24 @@ def _output_packages(test_case: CorpusTestCase, corpus: Corpus):
                 }
             )
 
+def _get_package_results(package: CorpusPackage, test_case_id: str, corpus_id: str) -> List[CorpusTestResult]:
+    results_dir = results_root / corpus_id/ test_case_id / package.path
+    results: List[CorpusTestResult] = []
+    if not results_dir.exists():
+        return results
+    for filename in results_dir.iterdir():
+        if filename.is_file():
+            print(f"Found test result file: { filename }")
+            result: ProcessResult = ProcessResult.from_file(filename)
+            _result_validity(result)
+            results.append(CorpusTestResult.from_process_result(result, test_case_id))
+    return results
 
+def _result_validity(result: ProcessResult) -> Level:
+    stdout_json: dict = result.stdout
+    pass
 
-def _get_corpus_context(corpus: Corpus) -> dict:
+def _get_corpus_context(corpus: Corpus) -> Dict:
     """Get the corpus context."""
     spec_requirements: set[str] = _get_specification_requirements(corpus)
     corpus_requirements: set[str] = _get_corpus_requirements(corpus)
@@ -121,7 +146,7 @@ def _get_corpus_context(corpus: Corpus) -> dict:
     }
 
 def _get_specification_requirements(corpus: Corpus) -> set[str]:
-    spec_requirements: set[str] = set()
+    spec_requirements: Set[str] = set()
     # Populate the specification requirements set
     for requirements in corpus.specification.requirements.values():
         for requirement in requirements:
@@ -132,9 +157,9 @@ def _get_specification_requirements(corpus: Corpus) -> set[str]:
         spec_requirements.add(requirement.id)
     return spec_requirements
 
-def _get_corpus_requirements(corpus: Corpus) -> set[str]:
+def _get_corpus_requirements(corpus: Corpus) -> Set[str]:
     corpus_dir: Path = corpus_root / corpus.specification.id
-    corpus_requirements: set[str] = set()
+    corpus_requirements: Set[str] = set()
     for filename in corpus_dir.iterdir():
         if filename.is_dir() and filename.name.startswith(corpus.specification.id):
             corpus_requirements.add(filename.name)
@@ -153,7 +178,7 @@ def _setup():
         # Create the reports root directory if it does not exist
         reports_root.mkdir(parents=True, exist_ok=True)
 
-def _render_template(output_dir: Path, template_name: str, context: dict, output_file: str = 'index.html'):
+def _render_template(output_dir: Path, template_name: str, context: Dict, output_file: str = 'index.html'):
     # Make sure the output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
     # load the template and render it with the context
