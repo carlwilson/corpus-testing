@@ -25,6 +25,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class AppConfig(BaseSettings):
-    corpus_config: str = ""
-    testing_config: str = ""
-    model_config = SettingsConfigDict(env_file=".env")
+    corpus_config: str = "./config/corpora.json"
+    testing_config: str = "./config/runners.json"
+    model_config = SettingsConfigDict(env_prefix="eark_", env_file=".env")
