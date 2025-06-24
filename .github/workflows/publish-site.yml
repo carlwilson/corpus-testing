@@ -31,7 +31,9 @@ jobs:
       - name: Test validators and create site src
         run: |
           # Run the validators and generate the site source
+          pwd
           ./setup.sh
+          pwd
           ./test.sh
           ./publish.sh
       - name: Build with Jekyll docker box

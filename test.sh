@@ -4,6 +4,7 @@ if [ -f ./config/runners.json ]; then
     rm ./config/runners.json
 fi
 cp ./config/eark-commons.json ./config/runners.json
+pwd
 eark-runner --clear
 if [ -f ./config/runners.json ]; then
     rm ./config/runners.json
