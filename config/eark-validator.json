@@ -1,0 +1,23 @@
+{
+    "runners": [
+        {
+            "details": {
+                "name": "E-ARK Python Validator",
+                "URL": "https://github.com/E-ARK-Software/eark-validator/",
+                "id": "eark-validator",
+                "version": ""
+            },
+            "commands": {
+                "version": [
+                    "eark-validator",
+                    "--version"
+                ],
+                "pre": [
+                    "eark-validator"
+                ],
+                "post": [
+                ]
+            }
+        }
+    ]
+}

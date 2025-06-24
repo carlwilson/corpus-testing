@@ -1,0 +1,3 @@
+eark-validator @ git+https://github.com/E-ARK-Software/eark-validator.git@integration
+fastapi[standard]==0.112.2
+pydantic_settings==2.4.0

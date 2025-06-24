@@ -1,0 +1,28 @@
+{
+    "runners": [
+        {
+            "name": "Commons IP Validator",
+            "URL": "https://github.com/keeps/commons-ip/",
+            "id": "commons-ip",
+            "commands": {
+                "version": [
+                    "java",
+                    "-jar",
+                    "commons-ip/commons-ip2-cli-2.10.0.jar",
+                    "-V"
+                ],
+                "pre": [
+                    "java",
+                    "-jar",
+                    "commons-ip/commons-ip2-cli-2.10.0.jar",
+                    "validate",
+                    "-i"
+                ],
+                "post": [
+                    "-r",
+                    "eark-validator"
+                ]
+            }
+        }
+    ]
+}
